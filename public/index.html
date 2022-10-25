@@ -1,23 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <link rel="stylesheet" type="text/css" href="/style.css">
-</head>
-
-<body>
-    <form>
-        <label>Enter a document id: </label>
-        <input name="doc" id="doc"></input>
+<html>
+  <head>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <form onsubmit="getDocument(); return false;">
+      Enter a document id: <input type="text" id="insertid" required="required">
+      <!-- <input type="button" onclick="getDocument()" value="Submit"> -->
     </form>
-    <button id="open">Open</button>
-</body>
-<script type="text/javascript">
 
-    let el = document.getElementById("open");
-    el.onclick = () => {
-        let id = document.getElementById("doc").value;
-        window.location.href = `/api/connect/${id}`;
+    <p id="id"></p>
+    <div id="quill"></div>
+
+  </body>
+  <script>
+    let currID = undefined;
+    let currText = undefined;
+    setID(currID);
+    setText(currText);
+
+    // create web-event connection
+    function getDocument(event) {
+      let insertid = document.getElementById("insertid").value;
+      if (setID(insertid)){
+        currID = insertid;
+        const events = new EventSource("http://localhost:3000/api/connect/" + currID);
+        events.onmessage = (event) => {
+          const parsedData = JSON.parse(event.data);
+          currText = parsedData;
+          setText(currText);
+        };
+      }
     }
-</script>
+
+    // Updates GUI
+    function setID(id) {
+      if (id !== undefined) {
+        document.getElementById("id").innerText = "Document ID: " + id;
+        return id !== currID;
+      } else {
+        document.getElementById("id").innerText = "Document ID: Undefined";
+        return false;
+      }
+    }
+
+    function setText(text) {
+        document.getElementById("quill").innerText = text !== undefined ? text : "Insert ID to get document";
+    }
+
+    
+  </script>
 </html>

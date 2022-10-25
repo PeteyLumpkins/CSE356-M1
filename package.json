@@ -4,7 +4,9 @@
   "description": "Fuck",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc && cp -R public build"
+    "build": "npx tsc && cp -R public build",
+    "start": "node ./build/index.js",
+    "restart": "npm run build && npm start"
   },
   "repository": {
     "type": "git",
