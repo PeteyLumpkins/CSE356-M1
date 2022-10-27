@@ -34,16 +34,31 @@ window.addEventListener('load', () => {
   const binding = new QuillBinding(ytext, editor)
 
   // ---------------------------------------- ADDED CODE
+  let events = undefined;
+  let docID = undefined;
+  let blockEvents = false;
+
+  const setID = (id) => {
+    docID = id;
+    if (id !== undefined) {
+      document.getElementById("id").innerText = "Document ID: " + id;
+    } else {
+      document.getElementById("id").innerText = "Document ID: Undefined";
+    }
+  } 
+
+  const setBlockEvents = (state) => {
+    blockEvents = state;
+  }
+
   // This code is incomplete...
   // probably need to figure out the yjs logic
-  let eventMutex = false;
-  let docID = "";
   ytext.observe(event => {
 
     console.log("id: " + docID);
     console.log('delta:', event.changes.delta);
     
-    if (docID != "" && eventMutex != true) {
+    if (docID != "" && blockEvents != true) {
       console.log("[OP] WRITING")
       fetch("http://localhost:3000/api/op/" + docID, { 
         method: "POST",
@@ -57,17 +72,40 @@ window.addEventListener('load', () => {
     } 
   })
 
-  const setDocID = (id) => {
-    docID = id;
+  // create web-event connection
+  const getDocument = () => {
+    let insertid = document.getElementById("insertid").value;
+    if (insertid !== undefined){
+      if (events) {
+        console.log("[CONNECT] DISCONNECTING");
+        setBlockEvents(true);
+        setID(undefined)
+        events.close();  
+        setBlockEvents(false);
+      }
+      setID(insertid)
+      // console.log("http://localhost:3000/api/connect/" + docID);
+      events = new EventSource("http://localhost:3000/api/connect/" + docID);
+      events.addEventListener('sync', event => {
+        console.log("[CONNECT] SYNCING");
+        setBlockEvents(true);
+        const eventData = JSON.parse(event.data);
+        ytext.delete(0, ytext.length);  // clear yjs text
+        ytext.applyDelta(eventData); // apply array of text delta to view
+        setBlockEvents(false);
+      });
+      events.addEventListener('update', event => {
+        console.log("[CONNECT] UPDATING");
+        setBlockEvents(true);
+        const eventData = JSON.parse(event.data);
+        ytext.applyDelta(eventData); // apply ONE text delta to view
+        setBlockEvents(false);
+      });
+    }
   }
 
-  const setMutex = (state) => {
-    eventMutex = state;
-  }
-
-  // @ts-ignore
-  globalThis.yjs = { ydoc, ytext, binding, Y }
-  globalThis.doc = { setDocID, setMutex }
   // The keyword "globalThis" allows variables to be "global"
-  // JS in quill.html calls these variables by: yjs.<variable>
+  // JS in quill.html calls these variables by: <variable>
+  globalThis.yjs = { ydoc, ytext, binding, Y }
+  globalThis.doc = { getDocument }
 })
