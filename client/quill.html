@@ -39,29 +39,36 @@
     let insertid = document.getElementById("insertid").value;
     if (setID(insertid)){
       docID = insertid;
-      yjs.docID = docID;
+      doc.setDocID(docID);
       // console.log("http://localhost:3000/api/connect/" + docID);
       events = new EventSource("http://localhost:3000/api/connect/" + docID);
       events.addEventListener('sync', event => {
         console.log("[CONNECT] SYNCING");
+        doc.setMutex(true);
         const eventData = JSON.parse(event.data);
         yjs.ytext.delete(0, yjs.ytext.length);  // clear yjs text
         yjs.ytext.applyDelta(eventData); // apply array of yjs.text delta to view
+        doc.setMutex(false);
       });
 
       events.addEventListener('update', event => {
         console.log("[CONNECT] UPDATING");
+        doc.setMutex(true);
         const eventData = JSON.parse(event.data);
         yjs.ytext.applyDelta(eventData); // apply ONE yjs.text delta to view
+        doc.setMutex(false);
       });
     }
   }
 
   // stop web-event connection, clear text content
   function disconnect(event) {
-      docID = undefined;
+      console.log("[CONNECT] DISCONNECTING");
+      doc.setMutex(true);
+      setID(undefined)
       events.close(); 
       yjs.ytext.delete(0, yjs.ytext.length); 
+      doc.setMutex(false);
   }
 
   // Updates GUI
