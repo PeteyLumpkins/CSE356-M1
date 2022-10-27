@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tsc && cp -R public build",
-    "start": "nodemon ./build/index.js",
+    "start": "nodemon index.ts",
     "bstart": "npm run build && npm start"
   },
   "repository": {
@@ -23,6 +23,11 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "path": "^0.12.7",
-    "typescript": "^4.8.4"
+    "typescript": "^4.8.4",
+    "yjs": "^13.5.42"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1"
   }
 }

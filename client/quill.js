@@ -1,7 +1,6 @@
 /* eslint-env browser */
 
 import * as Y from 'yjs'
-import { WebsocketProvider } from 'y-websocket'
 import { QuillBinding } from 'y-quill'
 import Quill from 'quill'
 import QuillCursors from 'quill-cursors'
@@ -10,8 +9,8 @@ Quill.register('modules/cursors', QuillCursors)
 
 window.addEventListener('load', () => {
   const ydoc = new Y.Doc()
-  const provider = new WebsocketProvider('wss://demos.yjs.dev', 'quill-demo-4', ydoc)
   const ytext = ydoc.getText('quill')
+
   const editorContainer = document.createElement('div')
   editorContainer.setAttribute('id', 'editor')
   document.body.insertBefore(editorContainer, null)
@@ -32,32 +31,31 @@ window.addEventListener('load', () => {
     theme: 'snow' // or 'bubble'
   })
 
-  const binding = new QuillBinding(ytext, editor, provider.awareness)
+  const binding = new QuillBinding(ytext, editor)
 
-  /*
-  // Define user name and user name
-  // Check the quill-cursors package on how to change the way cursors are rendered
-  provider.awareness.setLocalStateField('user', {
-    name: 'Typing Jimmy',
-    color: 'blue'
+  // ---------------------------------------- ADDED CODE
+  // This code is incomplete...
+  // probably need to figure out the yjs logic
+  const docID = "";
+  ytext.observe(event => {
+    console.log("yjs.id: " + docID);
+    console.log('delta:', event.changes.delta);
+    // if (docID != "") {
+    //   console.log("[OP] WRITING")
+    //   fetch("http://localhost:3000/api/op/" + docID, { 
+    //     method: "POST",
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({
+    //       id: docID,
+    //       data: event.changes.delta
+    //     })
+    //   })
+    //   console.log('POST delta');
+    // } 
   })
-  */
-
-  const connectBtn = document.getElementById('y-connect-btn')
-  connectBtn.addEventListener('click', () => {
-    if (provider.shouldConnect) {
-      provider.disconnect()
-      connectBtn.textContent = 'Connect'
-    } else {
-      provider.connect()
-      connectBtn.textContent = 'Disconnect'
-    }
-  })
-
-  // TEST VARIABLE
-  let test_var = 100;
 
   // @ts-ignore
-  globalThis.test = { test_var }
-  globalThis.example = { provider, ydoc, ytext, binding, Y }
+  globalThis.yjs = { ydoc, ytext, binding, Y, docID }
+  // The keyword "globalThis" allows variables to be "global"
+  // JS in quill.html calls these variables by: yjs.<variable>
 })

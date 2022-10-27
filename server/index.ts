@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { DocumentSet, Doc, Client } from "./DocumentSet";
+import * as Y from 'yjs'
 
 const app = express();
 var cors = require('cors')
@@ -30,10 +31,13 @@ app.get('/api/status', (req: Request, res: Response) => {
 })
 
 app.get("/api/connect/:id", (req: Request, res: Response) => {
+    console.log("[CONNECT]");
     if (!req || !req.params || !req.params.id) {
         res.status(400).json({message: "Bad Request."});
         return;
     }
+
+    // Set server sent event headers
     const headers = {
         'Content-Type': 'text/event-stream',
         'Connection': 'keep-alive',
@@ -41,24 +45,31 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     };
     res.writeHead(200, headers);
 
-    // Get the document id and document in the set of existing docs if it exists
-    let docId = req.params.id;
-
+    // Use document id to get document from the set of existing docs if it exists
+    let docId: string = req.params.id;
+    console.log("docId: " + docId);
     if (!documents.hasDocument(docId)) {
         documents.createDocument(docId);
     } 
-
-    let doc = documents.getDocument(docId);
+    let doc: Y.Doc | null = documents.getDocument(docId);
     if (doc === null) {
         res.status(500).json({message: `Error creating document with id: ${docId}`});
         return;
     }
-    res.write(`data: ${JSON.stringify(doc.text)}\n\n`);
+
+    // TEST WRITE INTO {ID: DOCUMENT} AND BROADCAST
+    const ytext = doc.getText(docId);
+    ytext.applyDelta([ { insert: docId + ' ' } ]);
+    documents.updateDocument(docId, [ { insert: docId + ' ' } ]);
+    // ytext.insert(0, docId + " ");
+    // console.log(doc.getText(docId).toDelta());
+    // DELETE THIS AFTER POST IS SET
+
+    // Send server sent event: sends yjs.text delta operation of document to client
+    res.write(`event: sync\ndata: ` + JSON.stringify(doc.getText(docId).toDelta()) + `\n\n`);
     
     // Subscribe client to document - when the doc changes, the client gets notified
     let clientId = documents.subscribe(docId, res);
-
-    documents.updateDocument(docId, doc.text + " " + clientId);
 
     // If the client closes the connection - unsubscribe the client from the document
     req.on('close', () => {
@@ -71,30 +82,30 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
  * Route for applying updates to the doc. Expects document content in 'data' field of body.
  */
 app.post("/api/op/:id", (req: Request, res: Response) => {
+    console.log("[OP]");
     if (!req || !req.body || !req.params) { 
         res.status(400).json({message: "Bad Request"}); 
         return; 
-    }
-    if (!req.params.id) { 
+    } if (!req.params.id) { 
         res.status(400).json({message: "No 'id' param found"}) 
         return; 
-    }
-    if (!req.body.data) { 
+    } if (!req.body.data) { 
         res.status(400).json({message: "No 'data' field in body"});
         return;
     }
 
     // Get id and updated data
-    let id = req.params.id;
-    let data = req.body.data;
+    let docId: string = req.params.id;
+    let data = req.body.data; // Holds ONE yjs.text delta operation
 
     // If no document with the id - return 404 not found
-    if (!documents.hasDocument(id)) {
-        res.status(404).json({message: `No doc found with id: ${id}`});
+    if (!documents.hasDocument(docId)) {
+        res.status(404).json({message: `No doc found with id: ${docId}`});
         return;
     }
+
     // Update the document - this updates all clients connected to the document
-    documents.updateDocument(id, data);
+    documents.updateDocument(docId, data);
 })
 
 app.listen(PORT, () => {
