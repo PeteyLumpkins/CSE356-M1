@@ -50,8 +50,8 @@ window.addEventListener('load', () => {
   // This code is incomplete...
   // probably need to figure out the yjs logic
   ytext.observe(event => {
-    if (!blockEvents) {
-      console.log("[OP] WRITING")
+    console.log("[OP] WRITING");
+    if (!blockEvents && docID !== undefined) {
       fetch("http://localhost:3000/api/op/" + docID, { 
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
@@ -60,7 +60,10 @@ window.addEventListener('load', () => {
           data: event.changes.delta
         })
       })
-    } else {
+    } else if (blockEvents && docID !== undefined) {
+      console.log('BLOCKED');
+    }
+    else {
       console.log('POST FAIL');
       console.log("id: " + docID);
       console.log("blockEvents: " + blockEvents);

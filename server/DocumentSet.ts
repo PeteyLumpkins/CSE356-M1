@@ -65,11 +65,12 @@ export class DocumentSet {
         ytext.applyDelta(op);
         // console.log(ytext.toDelta());
 
-        let clients = this._clients.get(docId);
-        if (clients !== undefined) {
-            clients.forEach(client => client.res.write(`event: update\ndata: ${JSON.stringify(op)}\n\n`));
-            clients.forEach(client => console.log(client.id));
-        }
+        // COMMENTED OUT FOR NOW
+        // let clients = this._clients.get(docId);
+        // if (clients !== undefined) {
+        //     clients.forEach(client => client.res.write(`event: update\ndata: ${JSON.stringify(op)}\n\n`));
+        //     clients.forEach(client => console.log(client.id));
+        // }
     }
 }
 
