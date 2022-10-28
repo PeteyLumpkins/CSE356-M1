@@ -11,18 +11,19 @@
     <link rel=stylesheet href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css" async
     defer>
     <style>
-      #editor {
-        min-height: 500px;
-      }
+      #editor { min-height: 500px; }
+      .child { display: inline-block; }
     </style>
 </head>
 <body>
   <!-- <button type="button" onclick="doc.disconnect()">Disconnect</button><br><br> -->
 
-  <form onsubmit="doc.getDocument(); return false;">
-    Enter a document id: <input type="text" id="insertid" required="required">
-  </form>
-  <input type="button" onclick="doc.getDocument()" value="Submit"><br>
+  <div>
+    <form onsubmit="doc.getDocument(); return false;" class="child">
+      Enter a document id: <input type="text" id="insertid" required="required">
+    </form>
+    <input type="button" onclick="doc.getDocument()" value="Open" class="child"><br>
+  </div>
 
   <p id="id">Document ID: Undefined</p>
 

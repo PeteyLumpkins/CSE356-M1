@@ -49,6 +49,7 @@ window.addEventListener('load', () => {
         }
     }
 
+<<<<<<< HEAD
     // This code is incomplete...
     // probably need to figure out the yjs logic
     ytext.observe(event => {
@@ -69,6 +70,31 @@ window.addEventListener('load', () => {
             console.log('delta:', event.changes.delta);
         }
     })
+=======
+  // This code is incomplete...
+  // probably need to figure out the yjs logic
+  ytext.observe(event => {
+    console.log("[OP] WRITING");
+    if (!blockEvents && docID !== undefined) {
+      fetch("http://localhost:3000/api/op/" + docID, { 
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: docID,
+          data: event.changes.delta
+        })
+      })
+    } else if (blockEvents && docID !== undefined) {
+      console.log('BLOCKED');
+    }
+    else {
+      console.log('POST FAIL');
+      console.log("id: " + docID);
+      console.log("blockEvents: " + blockEvents);
+      console.log('delta:', event.changes.delta);
+    }
+  })
+>>>>>>> e9023ed9e5181042b716fd9096c9d528ce4bbff3
 
     // create web-event connection
     const getDocument = () => {
