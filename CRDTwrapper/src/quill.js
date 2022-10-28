@@ -101,6 +101,18 @@ window.addEventListener('load', () => {
     }
   }
 
+  // ---------------------------------------- ADDED CODE
+  function updateCb(update) {
+    document.write('<nobr>update> ', update, '</nobr><br/>');
+  }
+  var crdt = new exports.CRDT(updateCb);
+  crdt.insert(0, 'Hello');
+  crdt.insert(5, 'World', { bold: true });
+  crdt.insert(5, ' ');
+  crdt.insert(12, '!');
+  var text = crdt.toHTML();
+  document.getElementById("test").innerHTML = text;
+
   // The keyword "globalThis" allows variables to be "global"
   // JS in quill.html calls these variables by: <variable>
   globalThis.yjs = { ydoc, ytext, binding, Y }
