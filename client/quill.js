@@ -1,3 +1,5 @@
+
+
 /* eslint-env browser */
 
 import * as Y from 'yjs'
@@ -28,7 +30,7 @@ window.addEventListener('load', () => {
             }
         },
         placeholder: 'Start collaborating...',
-        theme: 'bubble' // or 'bubble'
+        theme: 'snow' // or 'bubble'
     })
 
     const binding = new QuillBinding(ytext, editor)
