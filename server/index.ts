@@ -105,7 +105,7 @@ app.post("/api/op/:id", (req: Request, res: Response) => {
 
     // Update the document - this updates all clients connected to the document
     documents.updateDocument(docId, data);
-    res.status(400).json({message: "Success"});
+    res.status(200).json({message: "Success"});
 })
 
 app.listen(PORT, () => {
