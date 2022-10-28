@@ -51,19 +51,16 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     if (!documents.hasDocument(docId)) {
         documents.createDocument(docId);
     } 
-    let doc: Y.Doc | null = documents.getDocument(docId);
+    const doc: Y.Doc | null = documents.getDocument(docId);
     if (doc === null) {
         res.status(500).json({message: `Error creating document with id: ${docId}`});
         return;
     }
 
     // TEST WRITE INTO {ID: DOCUMENT} AND BROADCAST
-    const ytext = doc.getText(docId);
-    ytext.applyDelta([ { insert: docId + ' ' } ]);
-    documents.updateDocument(docId, [ { insert: docId + ' ' } ]);
-    // ytext.insert(0, docId + " ");
-    // console.log(doc.getText(docId).toDelta());
-    // DELETE THIS AFTER POST IS SET
+    // documents.updateDocument(docId, [ { insert: docId + ' ' } ]);
+    // console.log(ytext.toDelta());
+    // COMMENT THIS AFTER POST IS SET
 
     // Send server sent event: sends yjs.text delta operation of document to client
     res.write(`event: sync\ndata: ` + JSON.stringify(doc.getText(docId).toDelta()) + `\n\n`);
@@ -97,6 +94,8 @@ app.post("/api/op/:id", (req: Request, res: Response) => {
     // Get id and updated data
     let docId: string = req.params.id;
     let data = req.body.data; // Holds ONE yjs.text delta operation
+    // console.log("Operation: " + data);
+    console.log(data);
 
     // If no document with the id - return 404 not found
     if (!documents.hasDocument(docId)) {

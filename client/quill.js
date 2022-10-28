@@ -34,28 +34,72 @@ window.addEventListener('load', () => {
   const binding = new QuillBinding(ytext, editor)
 
   // ---------------------------------------- ADDED CODE
+  let eventStream = undefined;
+  let docID = undefined;
+  let blockEvents = false;
+
+  const setID = (id) => {
+    docID = id;
+    if (id !== undefined) {
+      document.getElementById("id").innerText = "Document ID: " + id;
+    } else {
+      document.getElementById("id").innerText = "Document ID: Undefined";
+    }
+  } 
+
   // This code is incomplete...
   // probably need to figure out the yjs logic
-  const docID = "";
   ytext.observe(event => {
-    console.log("yjs.id: " + docID);
-    console.log('delta:', event.changes.delta);
-    // if (docID != "") {
-    //   console.log("[OP] WRITING")
-    //   fetch("http://localhost:3000/api/op/" + docID, { 
-    //     method: "POST",
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //       id: docID,
-    //       data: event.changes.delta
-    //     })
-    //   })
-    //   console.log('POST delta');
-    // } 
+    if (!blockEvents) {
+      console.log("[OP] WRITING")
+      fetch("http://localhost:3000/api/op/" + docID, { 
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: docID,
+          data: event.changes.delta
+        })
+      })
+    } else {
+      console.log('POST FAIL');
+      console.log("id: " + docID);
+      console.log("blockEvents: " + blockEvents);
+      console.log('delta:', event.changes.delta);
+    }
   })
 
-  // @ts-ignore
-  globalThis.yjs = { ydoc, ytext, binding, Y, docID }
+  // create web-event connection
+  const getDocument = () => {
+    let insertid = document.getElementById("insertid").value;
+    if (insertid !== undefined){
+      if (eventStream) {
+        console.log("[CONNECT] DISCONNECTING");
+        eventStream.close();  
+        setID(undefined)
+      }
+      setID(insertid)
+      // console.log("http://localhost:3000/api/connect/" + docID);
+      eventStream = new EventSource("http://localhost:3000/api/connect/" + docID);
+      eventStream.addEventListener('sync', event => {
+        console.log("[CONNECT] SYNCING");
+        blockEvents = true;
+        const eventData = JSON.parse(event.data);
+        ytext.delete(0, ytext.length);  // clear yjs text
+        ytext.applyDelta(eventData); // apply array of text delta to view
+        blockEvents = false;
+      });
+      eventStream.addEventListener('update', event => {
+        console.log("[CONNECT] UPDATING");
+        blockEvents = true;
+        const eventData = JSON.parse(event.data);
+        ytext.applyDelta(eventData); // apply ONE text delta to view
+        blockEvents = false;
+      });
+    }
+  }
+
   // The keyword "globalThis" allows variables to be "global"
-  // JS in quill.html calls these variables by: yjs.<variable>
+  // JS in quill.html calls these variables by: <variable>
+  globalThis.yjs = { ydoc, ytext, binding, Y }
+  globalThis.doc = { getDocument }
 })
