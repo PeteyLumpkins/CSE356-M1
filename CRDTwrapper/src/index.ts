@@ -40,10 +40,10 @@ exports.CRDT = class {
       let text = op.insert;
       let attr = op.attributes;
       if (attr ? attr.bold : false) {
-          text = "<b>" + text + "</b>";
+          text = "<strong>" + text + "</strong>";
       }
       if (attr ? attr.italic : false) {
-        text = "<i>" + text + "</i>";
+        text = "<em>" + text + "</em>";
       }
       if (attr ? attr.underline : false) {
         text = "<u>" + text + "</u>";
