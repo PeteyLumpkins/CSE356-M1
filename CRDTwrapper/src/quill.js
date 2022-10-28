@@ -1,9 +1,9 @@
-/* eslint-env browser */
-
 import * as Y from 'yjs'
 import { QuillBinding } from 'y-quill'
 import Quill from 'quill'
 import QuillCursors from 'quill-cursors'
+
+const URL = "http://localhost:3000";
 
 Quill.register('modules/cursors', QuillCursors)
 
@@ -52,7 +52,7 @@ window.addEventListener('load', () => {
   ytext.observe(event => {
     console.log("[OP] WRITING");
     if (!blockEvents && docID !== undefined) {
-      fetch("http://localhost:3000/api/op/" + docID, { 
+      fetch(URL + "/api/op/" + docID, { 
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,8 +81,8 @@ window.addEventListener('load', () => {
         setID(undefined)
       }
       setID(insertid)
-      // console.log("http://localhost:3000/api/connect/" + docID);
-      eventStream = new EventSource("http://localhost:3000/api/connect/" + docID);
+      // console.log(URL + "/api/connect/" + docID);
+      eventStream = new EventSource(URL + "/api/connect/" + docID);
       eventStream.addEventListener('sync', event => {
         console.log("[CONNECT] SYNCING");
         blockEvents = true;

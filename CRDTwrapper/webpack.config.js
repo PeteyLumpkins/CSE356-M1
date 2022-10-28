@@ -41,10 +41,5 @@ module.exports = {
     hints: false,
     maxEntrypointSize: 512000,
     maxAssetSize: 512000
-  },
-  devServer: {
-    contentBase: path.join(__dirname),
-    compress: true,
-    publicPath: '/dist/'
   }
 };
