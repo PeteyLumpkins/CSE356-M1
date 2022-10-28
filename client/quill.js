@@ -34,7 +34,7 @@ window.addEventListener('load', () => {
   const binding = new QuillBinding(ytext, editor)
 
   // ---------------------------------------- ADDED CODE
-  let events = undefined;
+  let eventStream = undefined;
   let docID = undefined;
   let blockEvents = false;
 
@@ -47,18 +47,10 @@ window.addEventListener('load', () => {
     }
   } 
 
-  const setBlockEvents = (state) => {
-    blockEvents = state;
-  }
-
   // This code is incomplete...
   // probably need to figure out the yjs logic
   ytext.observe(event => {
-
-    console.log("id: " + docID);
-    console.log('delta:', event.changes.delta);
-    
-    if (docID != "" && blockEvents != true) {
+    if (!blockEvents) {
       console.log("[OP] WRITING")
       fetch("http://localhost:3000/api/op/" + docID, { 
         method: "POST",
@@ -68,25 +60,27 @@ window.addEventListener('load', () => {
           data: event.changes.delta
         })
       })
-      console.log('POST delta');
-    } 
+    } else {
+      console.log('POST FAIL');
+      console.log("id: " + docID);
+      console.log("blockEvents: " + blockEvents);
+      console.log('delta:', event.changes.delta);
+    }
   })
 
   // create web-event connection
   const getDocument = () => {
     let insertid = document.getElementById("insertid").value;
     if (insertid !== undefined){
-      if (events) {
+      if (eventStream) {
         console.log("[CONNECT] DISCONNECTING");
-        setBlockEvents(true);
+        eventStream.close();  
         setID(undefined)
-        events.close();  
-        setBlockEvents(false);
       }
       setID(insertid)
       // console.log("http://localhost:3000/api/connect/" + docID);
-      events = new EventSource("http://localhost:3000/api/connect/" + docID);
-      events.addEventListener('sync', event => {
+      eventStream = new EventSource("http://localhost:3000/api/connect/" + docID);
+      eventStream.addEventListener('sync', event => {
         console.log("[CONNECT] SYNCING");
         setBlockEvents(true);
         const eventData = JSON.parse(event.data);
@@ -94,7 +88,7 @@ window.addEventListener('load', () => {
         ytext.applyDelta(eventData); // apply array of text delta to view
         setBlockEvents(false);
       });
-      events.addEventListener('update', event => {
+      eventStream.addEventListener('update', event => {
         console.log("[CONNECT] UPDATING");
         setBlockEvents(true);
         const eventData = JSON.parse(event.data);
