@@ -82,18 +82,18 @@ window.addEventListener('load', () => {
       eventStream = new EventSource("http://localhost:3000/api/connect/" + docID);
       eventStream.addEventListener('sync', event => {
         console.log("[CONNECT] SYNCING");
-        setBlockEvents(true);
+        blockEvents = true;
         const eventData = JSON.parse(event.data);
         ytext.delete(0, ytext.length);  // clear yjs text
         ytext.applyDelta(eventData); // apply array of text delta to view
-        setBlockEvents(false);
+        blockEvents = false;
       });
       eventStream.addEventListener('update', event => {
         console.log("[CONNECT] UPDATING");
-        setBlockEvents(true);
+        blockEvents = true;
         const eventData = JSON.parse(event.data);
         ytext.applyDelta(eventData); // apply ONE text delta to view
-        setBlockEvents(false);
+        blockEvents = false;
       });
     }
   }
