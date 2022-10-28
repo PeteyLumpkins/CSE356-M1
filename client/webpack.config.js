@@ -1,48 +1,20 @@
-const path = require('path');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const JavaScriptObfuscator = require('webpack-obfuscator');
+const path = require('path')
 
 module.exports = {
-  entry: './src/index.ts',
+  mode: 'development',
+  devtool: 'source-map',
+  entry: {
+    quill: './quill.js'
+  },
   output: {
-    filename: 'crdt.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
-  mode: 'production',
-  resolve: {
-    extensions: ['.ts', '.js', '.json'],
-  },
-  module: {
-    rules: [
-      {
-        test: /\.(ts|js)?$/,
-        use: {
-          loader: 'babel-loader',
-        },
-        exclude: /node_modules/,
-      },    
-    ]
-  },
-  plugins: [
-    new ForkTsCheckerWebpackPlugin(),
-    new HtmlWebpackPlugin({
-      template: 'public/index.html'
-    }),
-    new JavaScriptObfuscator({
-      rotateStringArray: true
-    })
-  ],
-  performance: {
-    hints: false,
-    maxEntrypointSize: 512000,
-    maxAssetSize: 512000
+    globalObject: 'self',
+    path: path.resolve(__dirname, './dist/'),
+    filename: '[name].bundle.js',
+    publicPath: '/quill/dist/'
   },
   devServer: {
-    static: {
-      directory: path.join(__dirname, 'dist'),
-    },
+    contentBase: path.join(__dirname),
     compress: true,
-    port: 9000,
+    publicPath: '/dist/'
   }
-};
+}

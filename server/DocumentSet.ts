@@ -1,12 +1,13 @@
 import { Response } from 'express';
+import * as Y from 'yjs'
 
 export class DocumentSet {
 
-    _docs: Map<string, Doc>;
+    _docs: Map<string, any>;
     _clients: Map<string, Array<Client>>
 
     constructor() {
-        this._docs = new Map<string, Doc>();
+        this._docs = new Map<string, any>();
         this._clients = new Map<string, Array<Client>>();
     }
 
@@ -38,33 +39,39 @@ export class DocumentSet {
         if (this._docs.has(docId)) {
             return false;
         }
-        let doc = new Doc(docId);
-        this._docs.set(docId, doc)
+        const ydoc = new Y.Doc();
+        this._docs.set(docId, ydoc)
         return true;
     }
-    // this._clients.forEach(client => client.write(`data: ${JSON.stringify(this._text)}\n\n`));
+    
     hasDocument(docId: string): boolean {
         return this._docs.has(docId);
     }
-    getDocument(id: string): Doc | null {
-        if (!this._docs.has(id)) {
+
+    getDocument(docId: string): Y.Doc | null {
+        if (!this._docs.has(docId)) {
             return null;
         }
-        let doc = this._docs.get(id);
-        return doc !== undefined ? doc : null;
+        const ydoc = this._docs.get(docId);
+        return ydoc !== undefined ? ydoc : null;
     }
 
-    updateDocument(docId: string, data: string): void {
-        let doc = this._docs.get(docId);
-        if (doc !== undefined) {
-            doc.text = data;
-            let clients = this._clients.get(docId);
-            if (clients !== undefined) {
-                clients.forEach(client => client.res.write(`data: ${JSON.stringify(data)}\n\n`))
-            }
+    updateDocument(docId: string, op: any): void {
+        const ydoc = this.getDocument(docId);
+        if (ydoc === null) {
+            return;
         }
-    }
+        const ytext = ydoc.getText(docId);
+        ytext.applyDelta(op);
+        // console.log(ytext.toDelta());
 
+        // COMMENTED OUT FOR NOW
+        // let clients = this._clients.get(docId);
+        // if (clients !== undefined) {
+        //     clients.forEach(client => client.res.write(`event: update\ndata: ${JSON.stringify(op)}\n\n`));
+        //     clients.forEach(client => console.log(client.id));
+        // }
+    }
 }
 
 export class Client {
@@ -82,11 +89,11 @@ export class Client {
 
 export class Doc { 
 
-    id: string;
+    docId: string;
     text: string;
 
-    constructor(id: string) {
-        this.id = id;
+    constructor(docId: string) {
+        this.docId = docId;
         this.text = "";
     }
 
