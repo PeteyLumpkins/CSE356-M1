@@ -39,7 +39,7 @@ export class DocumentSet {
         if (this._docs.has(docId)) {
             return false;
         }
-        const ydoc = new Y.Doc();
+        let ydoc = new Y.Doc();
         this._docs.set(docId, ydoc)
         return true;
     }
@@ -52,11 +52,11 @@ export class DocumentSet {
         if (!this._docs.has(docId)) {
             return null;
         }
-        const ydoc = this._docs.get(docId);
+        let ydoc = this._docs.get(docId);
         return ydoc !== undefined ? ydoc : null;
     }
 
-    updateDocument(docId: string, op: any): void {
+    updateDocument(clientId: number, docId: string, op: any): void {
         let ydoc = this.getDocument(docId);
         if (ydoc === null) {
             return;
@@ -66,7 +66,9 @@ export class DocumentSet {
 
         let clients = this._clients.get(docId);
         if (clients !== undefined) {
-            clients.forEach(client => client.res.write(`event: update\ndata: ${JSON.stringify(op)}\n\n`));
+            clients.forEach(client => {
+                if (client.id !== clientId) client.res.write(`event: update\ndata: ${JSON.stringify({delta: op})}\n\n`)
+            });
             clients.forEach(client => console.log(client.id));
         }
     }

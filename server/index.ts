@@ -15,20 +15,7 @@ const PORT = '3000';
 
 let documents = new DocumentSet();
 
-app.get('/api/status', (req: Request, res: Response) => {
-    let str = "";
-    for (let docId of documents._docs.keys()) {
-        str += docId + ": ";
-        let clients = documents._clients.get(docId);
-        if (!clients) continue;
-        for (let client of clients) {
-            str += client.id;
-            str += " -> "
-        }
-        str += "\n";
-    }
-    res.status(200).json({clients: str});
-})
+
 
 app.get("/api/connect/:id", (req: Request, res: Response) => {
     console.log("[CONNECT]");
@@ -62,12 +49,15 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     // console.log(ytext.toDelta());
     // COMMENT THIS AFTER POST IS SET
 
-    // Send server sent event: sends yjs.text delta operation of document to client
-    res.write(`event: sync\ndata: ` + JSON.stringify(doc.getText(docId).toDelta()) + `\n\n`);
-    
+
     // Subscribe client to document - when the doc changes, the client gets notified
     let clientId = documents.subscribe(docId, res);
-
+    // Send server sent event: sends yjs.text delta operation of document to client
+    res.write(`event: sync\ndata: ` + JSON.stringify({
+        clientId: clientId,
+        delta: doc.getText(docId).toDelta()
+    }) + `\n\n`);
+    
     // If the client closes the connection - unsubscribe the client from the document
     req.on('close', () => {
         console.log(`${clientId} Connection closed`);
@@ -86,14 +76,17 @@ app.post("/api/op/:id", (req: Request, res: Response) => {
     } if (!req.params.id) { 
         res.status(400).json({message: "No 'id' param found"}) 
         return; 
-    } if (!req.body.data) { 
-        res.status(400).json({message: "No 'data' field in body"});
+    } if (!req.body.delta) { 
+        res.status(400).json({message: "Missing update delta"});
+        return;
+    } if (req.body.clientId === undefined) {
+        res.status(400).json({message: "Missing clientId"});
         return;
     }
 
     // Get id and updated data
     let docId: string = req.params.id;
-    let data = req.body.data; // Holds ONE yjs.text delta operation
+    let data = req.body.delta; // Holds ONE yjs.text delta operation
     // console.log("Operation: " + data);
     console.log(data);
 
@@ -104,7 +97,7 @@ app.post("/api/op/:id", (req: Request, res: Response) => {
     }
 
     // Update the document - this updates all clients connected to the document
-    documents.updateDocument(docId, data);
+    documents.updateDocument(req.body.clientId, docId, data);
     res.status(200).json({message: "Success"});
 })
 

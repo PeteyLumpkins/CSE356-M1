@@ -1,23 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <link rel="stylesheet" type="text/css" href="/style.css">
+    <meta charset="utf-8"/>
+    <title>Yjs Quill Example</title>
+    <script type="text/javascript" src="./dist/quill.bundle.js" async></script>
+    <link rel=stylesheet href="//cdn.quilljs.com/1.3.6/quill.snow.css" async
+    defer>
+    <link rel=stylesheet href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css" async
+    defer>
+    <link rel=stylesheet href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css" async
+    defer>
+    <style>
+      #editor { min-height: 500px; }
+      .child { display: inline-block; }
+    </style>
 </head>
-
 <body>
-    <form>
-        <label>Enter a document id: </label>
-        <input name="doc" id="doc"></input>
-    </form>
-    <button id="open">Open</button>
-</body>
-<script type="text/javascript">
 
-    let el = document.getElementById("open");
-    el.onclick = () => {
-        let id = document.getElementById("doc").value;
-        window.location.href = `/api/connect/${id}`;
-    }
-</script>
+  <div>
+    <form onsubmit="doc.getDocument(); return false;" class="child">
+      Enter a document id: <input type="text" id="insertid" required="required">
+    </form>
+    <input type="button" onclick="doc.getDocument()" value="Open" class="child"><br>
+  </div>
+
+  <p id="id">Document ID: Undefined</p>
+
+</body>
 </html>
