@@ -21,7 +21,7 @@ exports.CRDT = class {
     }
 
     update(update: string) {
-        const event = JSON.parse(update);
+        let event = JSON.parse(update);
         if (event.event === "sync") {
             this.clientId = event.clientId;
             this.ytext.delete(0, this.ytext.length);  // clear yjs text

@@ -67,6 +67,7 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     let clientId = documents.subscribe(docId, res);
     // Send server sent event: sends yjs.text delta operation of document to client
     res.write(`event: sync\ndata: ` + JSON.stringify({
+        docId: docId,
         clientId: clientId,
         delta: doc.getText(docId).toDelta()
     }) + `\n\n`);
