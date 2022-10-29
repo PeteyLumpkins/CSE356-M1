@@ -57,7 +57,7 @@ window.addEventListener('load', () => {
             return;
         } 
         
-        fetch("http://localhost:3000/api/op/" + docID, {
+        fetch("http://194.113.73.66/api/op/" + docID, {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -78,7 +78,7 @@ window.addEventListener('load', () => {
         }
         setID(insertid)
 
-        eventStream = new EventSource("http://localhost:3000/api/connect/" + docID);
+        eventStream = new EventSource("http://194.113.73.66/api/connect/" + docID);
         eventStream.addEventListener('sync', syncHandler);
         eventStream.addEventListener('update', updateHandler);
     }
