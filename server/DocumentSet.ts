@@ -39,7 +39,17 @@ export class DocumentSet {
         if (this._docs.has(docId)) {
             return false;
         }
-        let ydoc = new Y.Doc();
+        let ydoc = new Y.Doc({guid: docId});
+
+        ydoc.on('update', (update: Uint8Array, origin: number, doc: Y.Doc) => {
+            let clients = this._clients.get(doc.guid);
+            if (clients !== undefined) {
+                clients.forEach(client => {
+                    if (client.id !== origin) client.res.write(`event: update\ndata: ${JSON.stringify({update: update})}\n\n`);
+                });
+            }
+        });
+
         this._docs.set(docId, ydoc)
         return true;
     }
@@ -56,21 +66,12 @@ export class DocumentSet {
         return ydoc !== undefined ? ydoc : null;
     }
 
-    updateDocument(clientId: number, docId: string, op: any): void {
+    updateDocument(clientId: number, docId: string, update: Uint8Array): void {
         let ydoc = this.getDocument(docId);
         if (ydoc === null) {
             return;
         }
-        let ytext = ydoc.getText(docId);
-        ytext.applyDelta(op);
-
-        let clients = this._clients.get(docId);
-        if (clients !== undefined) {
-            clients.forEach(client => {
-                if (client.id !== clientId) client.res.write(`event: update\ndata: ${JSON.stringify({delta: op})}\n\n`)
-            });
-            clients.forEach(client => console.log(client.id));
-        }
+        Y.applyUpdate(ydoc, update, clientId);
     }
 }
 

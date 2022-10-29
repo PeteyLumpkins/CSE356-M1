@@ -56,7 +56,7 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     if (!documents.hasDocument(docId)) {
         documents.createDocument(docId);
     }
-    const doc: Y.Doc | null = documents.getDocument(docId);
+    let doc: Y.Doc | null = documents.getDocument(docId);
     if (doc === null) {
         res.status(500).json({ message: `Error creating document with id: ${docId}` });
         return;
@@ -68,7 +68,7 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     // Send server sent event: sends yjs.text delta operation of document to client
     res.write(`event: sync\ndata: ` + JSON.stringify({
         clientId: clientId,
-        delta: doc.getText(docId).toDelta()
+        update: doc.getText(docId)
     }) + `\n\n`);
 
     // If the client closes the connection - unsubscribe the client from the document
@@ -89,7 +89,7 @@ app.post("/api/op/:id", (req: Request, res: Response) => {
     } if (!req.params.id) {
         res.status(400).json({ message: "No 'id' param found" })
         return;
-    } if (!req.body.delta) {
+    } if (!req.body.update) {
         res.status(400).json({ message: "Missing update delta" });
         return;
     } if (req.body.clientId === undefined) {
