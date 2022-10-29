@@ -137,7 +137,7 @@ exports.CRDT = class {
             }
             html += text;
         }
-        return html;
+        return "<p>" + html + "</p>";
     }
 };
 exports.getDocument = getDocument
