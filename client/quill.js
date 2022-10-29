@@ -1,5 +1,3 @@
-
-
 /* eslint-env browser */
 
 import * as Y from 'yjs'
