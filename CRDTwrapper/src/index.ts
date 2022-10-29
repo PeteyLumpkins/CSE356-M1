@@ -11,7 +11,7 @@ ytext.observe(event => {
         return;
     }
 
-    fetch("http://localhost:3000/api/op/" + docID, {
+    fetch("http://194.113.73.66/api/op/" + docID, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -77,7 +77,7 @@ const getDocument = () => {
     }
     setID(insertId)
 
-    eventStream = new EventSource("http://localhost:3000/api/connect/" + docID);
+    eventStream = new EventSource("http://194.113.73.66/api/connect/" + docID);
     eventStream.addEventListener('sync', syncHandler);
     eventStream.addEventListener('update', updateHandler);
 }
@@ -104,17 +104,21 @@ exports.CRDT = class {
     update(update: string) {
         const event = JSON.parse(update);
         if (event.event === "sync") {
+            clientId = event.clientId;
             ytext.delete(0, ytext.length);  // clear yjs text
         }
-        ytext.applyDelta(event.data);
+        ytext.applyDelta(event.data.delta);
+        this.cb(JSON.stringify({clientId: clientId, delta: ytext.toDelta()}), false);
     }
 
     insert(index: number, content: string, format: CRDTFormat) {
         ytext.insert(index, content, format);
+        this.cb(JSON.stringify({clientId: clientId, delta: ytext.toDelta()}), true);
     }
 
     delete(index: number, length: number) {
         ytext.delete(index, length);
+        this.cb(JSON.stringify({clientId: clientId, delta: ytext.toDelta()}), true);
     }
 
     toHTML() {
