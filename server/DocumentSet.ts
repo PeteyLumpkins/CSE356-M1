@@ -57,20 +57,18 @@ export class DocumentSet {
     }
 
     updateDocument(docId: string, op: any): void {
-        const ydoc = this.getDocument(docId);
+        let ydoc = this.getDocument(docId);
         if (ydoc === null) {
             return;
         }
-        const ytext = ydoc.getText(docId);
+        let ytext = ydoc.getText(docId);
         ytext.applyDelta(op);
-        // console.log(ytext.toDelta());
 
-        // COMMENTED OUT FOR NOW
-        // let clients = this._clients.get(docId);
-        // if (clients !== undefined) {
-        //     clients.forEach(client => client.res.write(`event: update\ndata: ${JSON.stringify(op)}\n\n`));
-        //     clients.forEach(client => console.log(client.id));
-        // }
+        let clients = this._clients.get(docId);
+        if (clients !== undefined) {
+            clients.forEach(client => client.res.write(`event: update\ndata: ${JSON.stringify(op)}\n\n`));
+            clients.forEach(client => console.log(client.id));
+        }
     }
 }
 
