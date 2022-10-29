@@ -41,7 +41,8 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     const headers = {
         'Content-Type': 'text/event-stream',
         'Connection': 'keep-alive',
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache',
+        'X-CSE356': "6306bd7b2988c22186b2719c"
     };
     res.writeHead(200, headers);
 
