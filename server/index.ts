@@ -16,7 +16,23 @@ const PORT = '3000';
 
 let documents = new DocumentSet();
 
+app.get('/api/status', (req: Request, res: Response) => {
+    let docs = []
+    for (let docId of documents._docs.keys()) {
+        let doc = documents.getDocument(docId);
+        if (!doc) continue;
 
+        let clients = documents._clients.get(docId);
+        if (!clients) continue;
+
+        docs.push({
+            docId: docId,
+            clients: clients.map(c => c.id),
+            text: doc.getText(docId).toJSON()
+        })
+    }
+    res.status(200).json({docs: docs});
+})
 
 app.get("/api/connect/:id", (req: Request, res: Response) => {
     console.log("[CONNECT]");
