@@ -47,8 +47,12 @@ exports.CRDT = class {
     }
 
     toHTML() {
-        let converter = new QuillDeltaToHtmlConverter(this.ytext.toDelta(), {});
-        return converter.convert()
+        let delta = this.ytext.toDelta();
+        console.log(delta)
+        let converter = new QuillDeltaToHtmlConverter(delta, {});
+        let html = converter.convert();
+        console.log(html);
+        return html.toString();
         // let html = '';
 
         // for (let op of this.ytext.toDelta()) {
