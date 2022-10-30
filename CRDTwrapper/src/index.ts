@@ -21,12 +21,9 @@ exports.CRDT = class {
     }
 
     update(update: string) {
-        const event = JSON.parse(update);
-        if (event.event === "sync") {
-            this.clientId = event.clientId;
-            this.ytext.delete(0, this.ytext.length);  // clear yjs text
-        }
-        this.ytext.applyDelta(event.data.delta);
+        let data = JSON.parse(update);
+        this.clientId = data.clientId;
+        this.ytext.applyDelta(data.delta);
         this.cb(JSON.stringify({clientId: this.clientId, delta: this.ytext.toDelta()}), false);
     }
 
