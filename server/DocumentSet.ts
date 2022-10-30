@@ -46,14 +46,12 @@ export class DocumentSet {
             console.log(`Client array: ${clients}`);
             if (clients !== undefined) {
                 clients.forEach(client => {
-                    if (client.id !== origin) {
-                        let data = {
-                            sync: false,
-                            update: Array.from(update),
-                            clientId: origin
-                        }
-                        client.res.write(`event: update\ndata: ${JSON.stringify(data)}\n\n`);
+                    let data = {
+                        sync: false,
+                        update: Array.from(update),
+                        clientId: origin
                     }
+                    client.res.write(`event: update\ndata: ${JSON.stringify(data)}\n\n`);
                 });
             }
         });
