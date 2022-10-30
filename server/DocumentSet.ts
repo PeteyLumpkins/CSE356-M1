@@ -7,7 +7,7 @@ export class DocumentSet {
     _clients: Map<string, Array<Client>>
 
     constructor() {
-        this._docs = new Map<string, any>();
+        this._docs = new Map<string, Y.Doc>();
         this._clients = new Map<string, Array<Client>>();
     }
 
@@ -43,9 +43,17 @@ export class DocumentSet {
 
         ydoc.on('update', (update: Uint8Array, origin: number, doc: Y.Doc) => {
             let clients = this._clients.get(doc.guid);
+            console.log(`Client array: ${clients}`);
             if (clients !== undefined) {
                 clients.forEach(client => {
-                    if (client.id !== origin) client.res.write(`event: update\ndata: ${JSON.stringify({update: update})}\n\n`);
+                    if (client.id !== origin) {
+                        let data = {
+                            sync: false,
+                            update: Array.from(update),
+                            clientId: origin
+                        }
+                        client.res.write(`event: update\ndata: ${JSON.stringify(data)}\n\n`);
+                    }
                 });
             }
         });
@@ -71,6 +79,7 @@ export class DocumentSet {
         if (ydoc === null) {
             return;
         }
+        console.log("Applying update too ydoc, id: " + ydoc.guid);
         Y.applyUpdate(ydoc, update, clientId);
     }
 }
@@ -84,18 +93,6 @@ export class Client {
     constructor(res: Response) {
         this.id = Client.ID_COUNTER++;
         this.res = res;
-    }
-
-}
-
-export class Doc { 
-
-    docId: string;
-    text: string;
-
-    constructor(docId: string) {
-        this.docId = docId;
-        this.text = "";
     }
 
 }

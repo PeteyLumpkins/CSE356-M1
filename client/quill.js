@@ -9,7 +9,7 @@ Quill.register('modules/cursors', QuillCursors)
 
 window.addEventListener('load', () => {
     const ydoc = new Y.Doc()
-    const ytext = ydoc.getText('quill')
+    const ytext = ydoc.getText('text')
 
     const editorContainer = document.createElement('div')
     editorContainer.setAttribute('id', 'editor')
@@ -50,25 +50,16 @@ window.addEventListener('load', () => {
 
     // This code is incomplete...
     // probably need to figure out the yjs logic
-    ytext.observe(event => {
-        console.log("Op writing!");
-        if (blockEvents || docID === undefined || clientId === undefined) {
-            console.log('Error while trying to update!');
-            return;
-        } 
-        
-        fetch("http://194.113.73.66/api/op/" + docID, {
+    ydoc.on('update', (update, origin, doc, tr) => {
+        console.log(`Update ${update}`);
+        console.log(`Origin ${origin}`);
+        console.log(`Ydoc: ${doc}`);
+        fetch("http://localhost:3000/api/op/" + docID, {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                clientId: clientId,
-                docId: docID,
-                delta: event.changes.delta
-            })
+            body: JSON.stringify({clientId: clientId, docId: docID, update: Array.from(update)})
         });
-
-        console.log("Op wrote successfully!");
-    })
+    });
 
     // create web-event connection
     const getDocument = () => {
@@ -78,7 +69,7 @@ window.addEventListener('load', () => {
         }
         setID(insertid)
 
-        eventStream = new EventSource("http://194.113.73.66/api/connect/" + docID);
+        eventStream = new EventSource("http://localhost:3000/api/connect/" + docID);
         eventStream.addEventListener('sync', syncHandler);
         eventStream.addEventListener('update', updateHandler);
     }
@@ -94,15 +85,9 @@ window.addEventListener('load', () => {
     const syncHandler = (event) => {
         console.log("Sync event caught!");
         let eventData = JSON.parse(event.data);
-        console.log(`Data: ${eventData}`);
-
         clientId = eventData.clientId;
-
-        // Clear the doc and apply the delta
-        blockEvents = true;
-        ytext.delete(0, ytext.length);  
-        ytext.applyDelta(eventData.delta); 
-        blockEvents = false;
+        console.log(`Client: ${clientId} Update: ${eventData.update}`);
+        Y.applyUpdate(ydoc, Uint8Array.from(eventData.update), clientId); 
     }
 
     /**
@@ -114,13 +99,9 @@ window.addEventListener('load', () => {
      */
     const updateHandler = (event) => {
         console.log("Got an update event!");
-        let eventData = JSON.parse(event.data);
-        console.log(`Data: ${eventData}`);
-        let delta = eventData.delta
-        // Apply the update delta
-        blockEvents = true;
-        ytext.applyDelta(delta); 
-        blockEvents = false;
+        let data = JSON.parse(event.data);
+        // console.log(`Data: ${eventData}`);
+        Y.applyUpdate(ydoc, Uint8Array.from(data.update), data.clientId)
     }
 
     // The keyword "globalThis" allows variables to be "global"

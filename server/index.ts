@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
-import { DocumentSet, Doc, Client } from "./DocumentSet";
+import { DocumentSet } from "./DocumentSet";
 import * as Y from 'yjs'
 
 const app = express();
@@ -28,7 +28,7 @@ app.get('/api/status', (req: Request, res: Response) => {
         docs.push({
             docId: docId,
             clients: clients.map(c => c.id),
-            text: doc.getText(docId).toJSON()
+            text: doc.getText("text").toJSON()
         })
     }
     res.status(200).json({docs: docs});
@@ -67,8 +67,9 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     let clientId = documents.subscribe(docId, res);
     // Send server sent event: sends yjs.text delta operation of document to client
     res.write(`event: sync\ndata: ` + JSON.stringify({
+        sync: true,
         clientId: clientId,
-        update: doc.getText(docId)
+        update: Array.from(Y.encodeStateAsUpdate(doc))
     }) + `\n\n`);
 
     // If the client closes the connection - unsubscribe the client from the document
@@ -84,33 +85,27 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
 app.post("/api/op/:id", (req: Request, res: Response) => {
     console.log("[OP]");
     if (!req || !req.body || !req.params) {
-        res.status(400).json({ message: "Bad Request" });
-        return;
+        return res.status(400).json({ message: "Bad Request" });
     } if (!req.params.id) {
-        res.status(400).json({ message: "No 'id' param found" })
-        return;
+        return res.status(400).json({ message: "No 'id' param found" })
     } if (!req.body.update) {
-        res.status(400).json({ message: "Missing update delta" });
-        return;
+        return res.status(400).json({ message: "Missing update delta" });
     } if (req.body.clientId === undefined) {
-        res.status(400).json({ message: "Missing clientId" });
-        return;
+        return res.status(400).json({ message: "Missing clientId" });
     }
-
-    // Get id and updated data
-    let docId: string = req.params.id;
-    let data = req.body.delta; // Holds ONE yjs.text delta operation
-    // console.log("Operation: " + data);
-    console.log(data);
 
     // If no document with the id - return 404 not found
-    if (!documents.hasDocument(docId)) {
-        res.status(404).json({ message: `No doc found with id: ${docId}` });
+    if (!documents.hasDocument(req.params.id)) {
+        res.status(404).json({ message: `No doc found with id: ${req.params.id}` });
         return;
     }
 
+    console.log(`ClientId: ${req.body.clientId}`);
+    console.log(`DocId: ${req.body.docId}`);
+    console.log(`Update: ${req.body.update}`);
+
     // Update the document - this updates all clients connected to the document
-    documents.updateDocument(req.body.clientId, docId, data);
+    documents.updateDocument(req.body.clientId, req.params.id, Uint8Array.from(req.body.update));
     res.status(200).json({ message: "Success" });
 })
 
