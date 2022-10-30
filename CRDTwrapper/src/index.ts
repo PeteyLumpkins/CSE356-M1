@@ -12,16 +12,14 @@ exports.CRDT = class {
     ydoc: Y.Doc;
     ytext: Y.Text;
     id: number;
-    flag: boolean;
 
     constructor(cb: (update: string, isLocal: Boolean) => void) {
         this.ydoc = new Y.Doc();
         this.ytext = this.ydoc.getText("text");
         this.id = -1;
-        this.flag = false;
 
         this.ydoc.on("update", (update: Uint8Array, origin: any) => {
-            this.cb(JSON.stringify({update: Array.from(update), clientId: origin}), this.flag);
+            this.cb(JSON.stringify({update: Array.from(update), clientId: origin}), origin);
         })
 
         this.cb = cb;
@@ -33,18 +31,19 @@ exports.CRDT = class {
         if (data.sync) {
             this.id = data.clientId;
         }
-        this.flag = false;
-        Y.applyUpdate(this.ydoc, Uint8Array.from(data.update), data.clientId);
+        Y.applyUpdate(this.ydoc, Uint8Array.from(data.update), false);
     }
 
     insert(index: number, content: string, format: CRDTFormat) {
-        this.flag = true;
-        this.ytext.insert(index, content, format);
+        this.ydoc.transact(() => {
+            this.ytext.insert(index, content, format);
+        }, true)
     }
 
     delete(index: number, length: number) {
-        this.flag = true;
-        this.ytext.delete(index, length);
+        this.ydoc.transact(() => {
+            this.ytext.delete(index, length);
+        }, true);
     }
 
     toHTML() {
