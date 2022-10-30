@@ -67,7 +67,7 @@ export class DocumentSet {
         let clients = this._clients.get(docId);
         if (clients !== undefined) {
             clients.forEach(client => {
-                if (client.id !== clientId) client.res.write(`event: update\ndata: ${JSON.stringify({delta: op})}\n\n`)
+                if (client.id !== clientId) client.res.write(`event: update\ndata: ${JSON.stringify({clientId: client.id, delta: op})}\n\n`)
             });
             clients.forEach(client => console.log(client.id));
         }
