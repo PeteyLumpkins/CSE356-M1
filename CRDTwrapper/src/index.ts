@@ -48,18 +48,20 @@ exports.CRDT = class {
     }
 
     toHTML() {
+        // let converter = new QuillDeltaToHtmlConverter(this.ytext.toDelta(), )
         let html = '';
+
         for (let op of this.ytext.toDelta()) {
             let text = op.insert;
             let attr = op.attributes;
-            if (attr ? attr.bold : false) {
-                text = "<strong>" + text + "</strong>";
+            if (attr ? attr.underline : false) {
+                text = "<u>" + text + "</u>";
             }
             if (attr ? attr.italic : false) {
                 text = "<em>" + text + "</em>";
             }
-            if (attr ? attr.underline : false) {
-                text = "<u>" + text + "</u>";
+            if (attr ? attr.bold : false) {
+                text = "<strong>" + text + "</strong>";
             }
             html += text;
         }
