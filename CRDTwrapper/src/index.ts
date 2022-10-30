@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import { fromUint8Array, toUint8Array } from 'js-base64'
 
-var QuillDeltaToHtmlConverter = require('quill-delta-to-html').QuillDeltaToHtmlConverter;
+// var QuillDeltaToHtmlConverter = require('quill-delta-to-html').QuillDeltaToHtmlConverter;
 
 class CRDTFormat {
     public bold?: Boolean = false;
@@ -49,29 +49,29 @@ exports.CRDT = class {
     }
 
     toHTML() {
-        let delta = this.ytext.toDelta();
-        console.log(delta)
-        let converter = new QuillDeltaToHtmlConverter(delta, {});
-        let html = converter.convert();
-        console.log(html);
-        return html;
-        // let html = '';
+        // let delta = this.ytext.toDelta();
+        // console.log(delta)
+        // let converter = new QuillDeltaToHtmlConverter(delta, {});
+        // let html = converter.convert();
+        // console.log(html);
+        // return html;
+        let html = '';
 
-        // for (let op of this.ytext.toDelta()) {
-        //     let text = op.insert;
-        //     let attr = op.attributes;
-        //     if (attr ? attr.underline : false) {
-        //         text = "<u>" + text + "</u>";
-        //     }
-        //     if (attr ? attr.italic : false) {
-        //         text = "<em>" + text + "</em>";
-        //     }
-        //     if (attr ? attr.bold : false) {
-        //         text = "<strong>" + text + "</strong>";
-        //     }
-        //     html += text;
-        // }
-        // return "<p>" + html + "</p>";
+        for (let op of this.ytext.toDelta()) {
+            let text = op.insert;
+            let attr = op.attributes;
+            if (attr ? attr.underline : false) {
+                text = "<u>" + text + "</u>";
+            }
+            if (attr ? attr.italic : false) {
+                text = "<em>" + text + "</em>";
+            }
+            if (attr ? attr.bold : false) {
+                text = "<strong>" + text + "</strong>";
+            }
+            html += text;
+        }
+        return "<p>" + html + "</p>";
     }
 };
 
