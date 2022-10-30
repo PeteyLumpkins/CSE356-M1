@@ -4,10 +4,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const JavaScriptObfuscator = require('webpack-obfuscator');
 
 module.exports = {
-    entry: './src/index.ts',
+    entry: {
+        crdt: './src/index.ts',
+        quill: './src/quill.js',
+    },
     output: {
-        filename: 'crdt.js',
-        path: path.resolve(__dirname, 'dist'),
+        filename: '[name].js',
+        path: path.resolve(__dirname, '../server/public/dist'),
     },
     mode: 'production',
     resolve: {

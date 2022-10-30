@@ -4,9 +4,7 @@
   "description": "Fuck",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc && cp -R public build",
-    "start": "nodemon index.ts",
-    "bstart": "npm run build && npm start"
+    "start": "nodemon server.ts"
   },
   "repository": {
     "type": "git",

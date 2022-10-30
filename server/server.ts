@@ -9,8 +9,8 @@ var cors = require('cors')
 app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use("/library", express.static(path.join(__dirname, "library")));
-app.use("/", express.static(path.join(__dirname, "public")));
+app.use("/", express.static(path.join(__dirname, "public/dist")));
+app.use("/library", express.static(path.join(__dirname, "public/dist")));
 
 const PORT = '3000';
 
@@ -66,10 +66,7 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     // Subscribe client to document - when the doc changes, the client gets notified
     let clientId = documents.subscribe(docId, res);
     // Send server sent event: sends yjs.text delta operation of document to client
-    res.write(`event: sync\ndata: ` + JSON.stringify({
-        clientId: clientId,
-        delta: doc.getText(docId).toDelta()
-    }) + `\n\n`);
+    res.write(`event: sync\ndata: ` + JSON.stringify({clientId: clientId, delta: doc.getText(docId).toDelta()}) + `\n\n`);
 
     // If the client closes the connection - unsubscribe the client from the document
     req.on('close', () => {

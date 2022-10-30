@@ -1,0 +1,80 @@
+constructor(cb: (update: string, isLocal: Boolean) => void) {
+    this.ydoc = new Y.Doc();
+    this.ytext = this.ydoc.getText('quill');
+    this.cb = cb;
+    this.id = this.ydoc.clientID;
+    ['update', 'insert', 'delete', 'toHTML'].forEach(f => (this as any)[f] = (this as any)[f].bind(this));
+  }
+
+  update(update: string) {
+    // console.log(update);
+    // console.log(JSON.parse(update));
+
+    // this.ytext.insert(0, "");
+    // this.ytext.delete(0, 2);
+
+    // console.log(JSON.parse(update).data);
+    this.ytext.applyDelta(JSON.parse(update));
+    // console.log()
+    let jsonBody = {
+      data: JSON.parse(update),
+      id: this.id
+    }
+    this.cb(JSON.stringify(jsonBody), false);
+  }
+
+  insert(index: number, content: string, format: CRDTFormat) {
+    this.ytext.insert(index, content, format);
+    // let deltab = this.ytext.toDelta();
+    // console.log(deltab.ops);
+
+    let delta = [];
+    if(index >0){
+      if(format){
+        delta = [{index: index}, {insert:content, attributes:format}];
+      }
+      else{
+        delta = [{index:index}, {insert:content}];
+      }
+    }else{
+      if(format){
+        delta = [{insert:content, attributes:format}];
+      }
+      else{
+        delta = [{insert:content}];
+      }
+    }
+
+    // console.log(delta);
+    let jsonBody = {
+      data: delta,
+      id: this.id
+    }
+    this.cb(JSON.stringify(jsonBody), true);
+  }
+
+  delete(index: number, length: number) {
+    if(this.ytext.toString() === ""){
+      console.log("delete none");
+      return
+    }
+    this.ytext.delete(index, length);
+    let delta = [];
+    if(index >0){
+      delta = [{index:index}, {delete:length}];
+    }
+    else{
+      delta = [{delete:length}];
+    }
+    let jsonBody = {
+      data: delta,
+      id: this.id
+    }
+    this.cb(JSON.stringify(jsonBody), true);
+  }
+
+  toHTML() {
+    let converter = new QuillDeltaToHtmlConverter(this.ytext.toDelta());
+    return converter.convert();
+  }
+};

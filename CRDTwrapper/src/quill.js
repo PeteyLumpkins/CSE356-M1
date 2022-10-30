@@ -21,15 +21,15 @@ ytext.observe(event => {
         })
     });
 
-    console.log("Op wrote successfully!");
+    // console.log("Op wrote successfully!");
 });
 
-let eventStream: any = undefined;
-let docID: any = undefined;
-let clientId: any = undefined;
-let blockEvents: boolean = false;
+let eventStream = undefined;
+let docID = undefined;
+let clientId = undefined;
+let blockEvents = false;
 
-const setID = (id: any) => {
+const setID = (id) => {
     docID = id;
     if (id !== undefined) {
         let html = document.getElementById("id");
@@ -44,21 +44,10 @@ const setID = (id: any) => {
     }
 }
 
-const updateHandler = (event: any) => {
-    console.log("Got an update event!");
-    let eventData = JSON.parse(event.data);
-    console.log(`Data: ${eventData}`);
-    let delta = eventData.delta
-    // Apply the update delta
-    blockEvents = true;
-    ytext.applyDelta(delta);
-    blockEvents = false;
-}
-
-const syncHandler = (event: any) => {
+const syncHandler = (event) => {
     console.log("Sync event caught!");
     let eventData = JSON.parse(event.data);
-    console.log(`Data: ${eventData}`);
+    console.log(eventData);
 
     clientId = eventData.clientId;
 
@@ -69,9 +58,19 @@ const syncHandler = (event: any) => {
     blockEvents = false;
 }
 
-const getDocument = () => {
-    let html = document.getElementById("insertid")
-    let insertId = html !== null ? html.nodeValue : undefined
+const updateHandler = (event) => {
+    console.log("Got an update event!");
+    let eventData = JSON.parse(event.data);
+    console.log(eventData);
+    let delta = eventData.delta
+    // Apply the update delta
+    blockEvents = true;
+    ytext.applyDelta(delta);
+    blockEvents = false;
+}
+
+export const getDocument = () => {
+    let insertId = document.getElementById("insertid").value;
     if (insertId === undefined) {
         return;
     }
@@ -81,20 +80,10 @@ const getDocument = () => {
     eventStream.addEventListener('sync', syncHandler);
     eventStream.addEventListener('update', updateHandler);
 }
-
-declare global {
-    var bind: any;
-    var doc: any
-}
-
 exports.getDocument = getDocument
 
 window.addEventListener('load', () => {
     const editorContainer = document.getElementById('editor');
-    if (editorContainer === null) {
-        return;
-    }
-
     const editor = new Quill(editorContainer, {
         modules: {
             toolbar: [
@@ -109,7 +98,6 @@ window.addEventListener('load', () => {
         placeholder: 'Start collaborating...',
         theme: 'snow' // or 'bubble'
     });
-
     const binding = new QuillBinding(ytext, editor);
-    globalThis.bind = { binding, }
+    globalThis.bind = { binding}
 });
