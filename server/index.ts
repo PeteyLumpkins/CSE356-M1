@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import { DocumentSet } from "./DocumentSet";
 import * as Y from 'yjs'
+import { fromUint8Array, toUint8Array } from 'js-base64'
 
 const app = express();
 var cors = require('cors')
@@ -69,7 +70,7 @@ app.get("/api/connect/:id", (req: Request, res: Response) => {
     res.write(`event: sync\ndata: ` + JSON.stringify({
         sync: true,
         clientId: clientId,
-        update: Array.from(Y.encodeStateAsUpdate(doc))
+        update: fromUint8Array(Y.encodeStateAsUpdate(doc))
     }) + `\n\n`);
 
     // If the client closes the connection - unsubscribe the client from the document
@@ -105,7 +106,7 @@ app.post("/api/op/:id", (req: Request, res: Response) => {
     console.log(`Update: ${req.body.update}`);
 
     // Update the document - this updates all clients connected to the document
-    documents.updateDocument(req.body.clientId, req.params.id, Uint8Array.from(req.body.update));
+    documents.updateDocument(req.body.clientId, req.params.id, toUint8Array(req.body.update));
     res.status(200).json({ message: "Success" });
 })
 

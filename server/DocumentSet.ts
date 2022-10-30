@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import * as Y from 'yjs'
+import { fromUint8Array, toUint8Array } from 'js-base64'
 
 export class DocumentSet {
 
@@ -48,7 +49,7 @@ export class DocumentSet {
                 clients.forEach(client => {
                     let data = {
                         sync: false,
-                        update: Array.from(update),
+                        update: fromUint8Array(update),
                         clientId: origin
                     }
                     client.res.write(`event: update\ndata: ${JSON.stringify(data)}\n\n`);

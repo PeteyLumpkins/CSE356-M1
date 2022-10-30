@@ -1,4 +1,6 @@
 import * as Y from 'yjs';
+import { fromUint8Array, toUint8Array } from 'js-base64'
+
 var QuillDeltaToHtmlConverter = require('quill-delta-to-html').QuillDeltaToHtmlConverter;
 
 class CRDTFormat {
@@ -19,7 +21,7 @@ exports.CRDT = class {
         this.id = -1;
 
         this.ydoc.on("update", (update: Uint8Array, origin: any) => {
-            this.cb(JSON.stringify({update: Array.from(update), clientId: this.id}), origin);
+            this.cb(JSON.stringify({update: fromUint8Array(update), clientId: this.id}), origin);
         })
 
         this.cb = cb;
@@ -31,7 +33,7 @@ exports.CRDT = class {
         if (data.sync) {
             this.id = data.clientId;
         }
-        Y.applyUpdate(this.ydoc, Uint8Array.from(data.update), false);
+        Y.applyUpdate(this.ydoc, toUint8Array(data.update), false);
     }
 
     insert(index: number, content: string, format: CRDTFormat) {
